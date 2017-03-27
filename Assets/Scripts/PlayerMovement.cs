@@ -53,6 +53,7 @@ public class PlayerMovement : Photon.PunBehaviour {
         if ( !Physics2D.Raycast( CurPos, addTrans.normalized, RayCastLength, WallLayer ))
         {
             transform.position = new Vector3(CurPos.x + addTrans.x, CurPos.y + addTrans.y, 0);
+            GetComponent<AudioSource>().Play();
         }
 
         //Debug.Log(Gm.AmIClient);
