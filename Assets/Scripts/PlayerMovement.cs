@@ -49,10 +49,14 @@ public class PlayerMovement : Photon.PunBehaviour {
             addTrans.y -= speed * Time.deltaTime;
         }
 
+        bool nextBlockIsWall = Physics2D.Raycast(CurPos, addTrans.normalized, RayCastLength, WallLayer);
 
-        if ( !Physics2D.Raycast( CurPos, addTrans.normalized, RayCastLength, WallLayer ))
+        if ( !nextBlockIsWall && (PhotonNetwork.playerList.Length == 2))
         {
             transform.position = new Vector3(CurPos.x + addTrans.x, CurPos.y + addTrans.y, 0);
+            
+        }else if ( nextBlockIsWall)
+        {
             GetComponent<AudioSource>().Play();
         }
 
