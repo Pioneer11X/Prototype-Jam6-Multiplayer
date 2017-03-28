@@ -57,7 +57,7 @@ public class PlayerMovement : Photon.PunBehaviour {
             
         }else if ( nextBlockIsWall)
         {
-            GetComponent<AudioSource>().Play();
+            //GetComponent<AudioSource>().Play();
         }
 
         //Debug.Log(Gm.AmIClient);

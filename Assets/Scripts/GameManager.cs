@@ -153,4 +153,19 @@ public class GameManager : PunBehaviour {
         }
     }
 
+    public void LevelEnded(int _curLevel)
+    {
+        if ( AmIServer)
+        {
+            // Server tries to get out.
+            Debug.Log("You Won");
+        }else if ( AmIClient)
+        {
+            Debug.Log("You Lose");
+        }else
+        {
+            Debug.Log("WutFace");
+        }
+    }
+
 }
