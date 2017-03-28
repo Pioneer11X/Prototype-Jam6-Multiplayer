@@ -44,18 +44,6 @@ public class GameManager : PunBehaviour {
     private float delayCounter = 0;
     public bool delayedControl = false;
 
-    //private void CacheLevels()
-    //{
-    //    //GameObject[] Puzzles = new GameObject[MaxLevels];
-    //    Puzzles = new GameObject[MaxLevels];
-    //    string temp;
-    //    for ( int i = 1; i <= MaxLevels; i++)
-    //    {
-    //        temp = "Puzzle_" + i.ToString();
-    //        Puzzles[i-1] = GameObject.Find(temp);
-    //    }
-    //}
-
     private void Awake()
     {
         if ( gm == null)
@@ -113,17 +101,24 @@ public class GameManager : PunBehaviour {
             return;
         }
 
+        // You were waiting fir two people. Now there are two.
         if ( waitingForSecondPlayer )
             InitLevel();
 
         if ( delayedControl )
         {
             delayCounter += Time.deltaTime;
+            
         }
-        if ( delayCounter >= delayControls)
+
+        if (delayCounter >= delayControls)
         {
             delayCounter = 0;
             delayedControl = false;
+        }
+        else
+        {
+            return;
         }
 
         completeTimer -= 0.0f;
@@ -214,18 +209,7 @@ public class GameManager : PunBehaviour {
 
         if (PhotonNetwork.isMasterClient)
         {
-            //if (!Puzzles[_curLevel - 1].GetComponent<PhotonView>().isMine)
-            //{
-            //    Puzzles[_curLevel - 1].GetComponent<PhotonView>().RequestOwnership();
-            //}
-            //Puzzles[_curLevel - 1].SetActive(false);
-            //if (_curLevel < Puzzles.Length)
-            //{
-            //    Puzzles[_curLevel].SetActive(true);
-            //    Player.GetComponent<Transform>().position = Puzzles[_curLevel].GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
-            //}
-            //Debug.Log(level);
-            //Destroy(level);
+           
             PhotonNetwork.Destroy(level);
             curLevel += 1;
             if ( curLevel > MaxLevels)

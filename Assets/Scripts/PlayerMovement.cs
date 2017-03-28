@@ -39,6 +39,11 @@ public class PlayerMovement : Photon.PunBehaviour {
     // Update is called once per frame
     void Update () {
 
+        if (Gm.delayedControl)
+        {
+            return;
+        }
+
         Vector2 addTrans = new Vector2(0, 0);
         Vector2 CurPos = GetComponent<Transform>().position;
 
