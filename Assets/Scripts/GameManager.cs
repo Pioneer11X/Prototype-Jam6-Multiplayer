@@ -7,7 +7,7 @@ public class GameManager : PunBehaviour {
 
     public static GameManager gm;
 
-    public GameObject Player;
+    private GameObject Player;
 
     public Camera MainCamera;
 
@@ -65,28 +65,43 @@ public class GameManager : PunBehaviour {
         }
         //CacheLevels();
         delayControls = 0.25f;
+        
     }
 
     void InitLevel()
     {
         if ( CheckIf2Players() && waitingForSecondPlayer)
         {
+            Debug.Log("here");
             waitingForSecondPlayer = false;
             if (PhotonNetwork.isMasterClient)
             {
                 level = PhotonNetwork.Instantiate("Puzzle_1", transform.position, transform.rotation, 0);
                 curLevel = 1;
-                Player.GetComponent<Transform>().position = level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
+                Player = PhotonNetwork.Instantiate("Player", level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position, new Quaternion(0, 0, 0, 0), 0);
+                pv = Player.GetComponent<PhotonView>();
+                //Player.GetComponent<Transform>().position = level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
                 level.GetComponent<Transform>().FindChild("LevelEndObj").GetComponent<LevelEnd>().enabled = true;
+            }else
+            {
+                Debug.Log("here as well");
+                level = GameObject.FindGameObjectWithTag("Puzzles");
+                
+                curLevel = 1;
+                Player = GameObject.FindGameObjectWithTag("Player");
             }
+        }else
+        {
+           
         }
+        Debug.Log(Player);
+        Debug.Log(level);
     }
 
     private void Start()
     {
         completeTimer = RoundTime;
         BlackScreen.GetComponent<Transform>().position = BlackScreenInvisPos.position;
-        pv = Player.GetComponent<PhotonView>();
         CanServerControl = true;
         UpdateOwner();
     }
@@ -105,21 +120,6 @@ public class GameManager : PunBehaviour {
         if ( waitingForSecondPlayer )
             InitLevel();
 
-        if ( delayedControl )
-        {
-            delayCounter += Time.deltaTime;
-            
-        }
-
-        if (delayCounter >= delayControls)
-        {
-            delayCounter = 0;
-            delayedControl = false;
-        }
-        else
-        {
-            return;
-        }
 
         completeTimer -= 0.0f;
 
@@ -139,6 +139,12 @@ public class GameManager : PunBehaviour {
             UpdateOwner();
         }
 
+        if ( pv == null)
+        {
+            pv = Player.GetComponent<PhotonView>();
+            Debug.Log(Player);
+        }
+
         if ( pv.isMine)
         {
             BlackScreen.GetComponent<Transform>().position = BlackScreenVisPos.position;
@@ -151,6 +157,13 @@ public class GameManager : PunBehaviour {
 
     void UpdateOwner()
     {
+        Debug.Log("Change");
+        Debug.Log(pv);
+        if ( pv == null)
+        {
+            Debug.Log(Player);
+            pv = Player.GetComponent<PhotonView>();
+        }
         if ( !pv.isMine)
         {
             int whose = pv.ownerId;
