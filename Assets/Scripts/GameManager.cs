@@ -211,6 +211,7 @@ public class GameManager : PunBehaviour {
         {
            
             PhotonNetwork.Destroy(level);
+            PhotonNetwork.Destroy(Player);
             curLevel += 1;
             if ( curLevel > MaxLevels)
             {
@@ -218,7 +219,9 @@ public class GameManager : PunBehaviour {
             }
             level = PhotonNetwork.Instantiate("Puzzle_" + curLevel.ToString(), new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0), 0);
             
-            Player.GetComponent<Transform>().position = level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
+            //Player.GetComponent<Transform>().position = level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
+            Player = PhotonNetwork.Instantiate("Player", level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position, new Quaternion(0, 0, 0, 0), 0);
+            Player.GetComponent<PlayerMovement>().enabled = true;
             //Debug.Log(level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position);
         }
     }

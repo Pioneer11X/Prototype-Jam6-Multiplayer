@@ -9,7 +9,7 @@ public class PlayerMovement : Photon.PunBehaviour {
 
     public bool canMove = true;
 
-    public GameObject Scripts;
+    private GameObject Scripts;
 
     public LayerMask WallLayer;
 
@@ -22,6 +22,7 @@ public class PlayerMovement : Photon.PunBehaviour {
     private void Awake()
     {
         pv = GetComponent<PhotonView>();
+        Scripts = GameObject.FindGameObjectWithTag("GameController");
         Gm = Scripts.GetComponent<GameManager>();
     }
 
