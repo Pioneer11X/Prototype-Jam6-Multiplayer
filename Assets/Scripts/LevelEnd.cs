@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LevelEnd : MonoBehaviour {
 
-    public GameManager Gm;
+    private GameManager Gm;
 
     public string CommonGameObjectName;
 
@@ -21,16 +21,33 @@ public class LevelEnd : MonoBehaviour {
 
     private void Awake()
     {
-        currentLevel = int.Parse( this.GetComponent<Transform>().parent.name.Replace(CommonGameObjectName, "") );
+        
+    }
+
+    private void Start()
+    {
+        Gm = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
+        currentLevel = Gm.curLevel;
         position = new Vector2(GetComponent<Transform>().position.x, GetComponent<Transform>().position.y);
         direction = new Vector2(HorizontalDirectionToRayCast, VerticalDirectionToRayCast);
         direction.Normalize();
     }
 
-    private void Update()
+    void Update()
     {
-        if ( Physics2D.Raycast(position, direction, RaycastDepth, PlayerLayer)){
+        //Debug.Log(Physics2D.Raycast(position, direction, RaycastDepth, PlayerLayer).collider);
+        //if ( Physics2D.Raycast(position, direction, RaycastDepth, PlayerLayer).collider!=null){
+        //    Debug.Log("Niisan");
+        //    Gm.LevelEnded(currentLevel);
+        //}
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if ( collision.name == "Player")
+        {
             Gm.LevelEnded(currentLevel);
+            Destroy(this);
         }
     }
 

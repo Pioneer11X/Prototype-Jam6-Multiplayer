@@ -14,8 +14,8 @@ public class GameManager : PunBehaviour {
     public bool CanServerControl = false;
     public bool CanClientControl = false;
 
-    public bool AmIServer = false;
-    public bool AmIClient = false;
+    public bool AmIServer = PhotonNetwork.isMasterClient;
+    public bool AmIClient = !PhotonNetwork.isMasterClient;
 
     public GameObject BlackScreen;
 
@@ -26,12 +26,35 @@ public class GameManager : PunBehaviour {
 
     public string LevelObjTag;
 
+    public int MaxLevels;
+
     private PhotonView pv;
 
     private float timer = 0.0f;
     private float completeTimer = 0.0f;
 
     private GameObject curLevelObj;
+
+    public int curLevel;
+    private GameObject level;
+
+    private bool waitingForSecondPlayer = true;
+
+    private float delayControls;
+    private float delayCounter = 0;
+    public bool delayedControl = false;
+
+    //private void CacheLevels()
+    //{
+    //    //GameObject[] Puzzles = new GameObject[MaxLevels];
+    //    Puzzles = new GameObject[MaxLevels];
+    //    string temp;
+    //    for ( int i = 1; i <= MaxLevels; i++)
+    //    {
+    //        temp = "Puzzle_" + i.ToString();
+    //        Puzzles[i-1] = GameObject.Find(temp);
+    //    }
+    //}
 
     private void Awake()
     {
@@ -52,6 +75,23 @@ public class GameManager : PunBehaviour {
                 curLevelObj = temp[i];
             }
         }
+        //CacheLevels();
+        delayControls = 0.25f;
+    }
+
+    void InitLevel()
+    {
+        if ( CheckIf2Players() && waitingForSecondPlayer)
+        {
+            waitingForSecondPlayer = false;
+            if (PhotonNetwork.isMasterClient)
+            {
+                level = PhotonNetwork.Instantiate("Puzzle_1", transform.position, transform.rotation, 0);
+                curLevel = 1;
+                Player.GetComponent<Transform>().position = level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
+                level.GetComponent<Transform>().FindChild("LevelEndObj").GetComponent<LevelEnd>().enabled = true;
+            }
+        }
     }
 
     private void Start()
@@ -65,11 +105,25 @@ public class GameManager : PunBehaviour {
 
     private void Update()
     {
+
         if ( !CheckIf2Players())
         {
             // If you are in the room without the other person then you are the server.
             completeTimer = RoundTime;
             return;
+        }
+
+        if ( waitingForSecondPlayer )
+            InitLevel();
+
+        if ( delayedControl )
+        {
+            delayCounter += Time.deltaTime;
+        }
+        if ( delayCounter >= delayControls)
+        {
+            delayCounter = 0;
+            delayedControl = false;
         }
 
         completeTimer -= 0.0f;
@@ -90,21 +144,12 @@ public class GameManager : PunBehaviour {
             UpdateOwner();
         }
 
-        int whose = pv.ownerId;
-
-        if ( ( pv.isMine && ( whose == 2) ) || (!pv.isMine && (whose == 1) ))
-        {
-            AmIClient = true;
-            AmIServer = false;
-        }else
-        {
-            AmIServer = true;
-            AmIClient = false;
-        }
-
         if ( pv.isMine)
         {
-            BlackScreen.GetComponent<Transform>().position = BlackScreenVisPos.position;  
+            BlackScreen.GetComponent<Transform>().position = BlackScreenVisPos.position;
+        }else
+        {
+            BlackScreen.GetComponent<Transform>().position = BlackScreenInvisPos.position;
         }
         
     }
@@ -115,34 +160,21 @@ public class GameManager : PunBehaviour {
         {
             int whose = pv.ownerId;
 
-            //if ( (AmIServer && CanServerControl) || (AmIClient && CanClientControl) )
-            //{
-            //    pv.RequestOwnership();
-            //}
-
             if (whose == 2 && CanServerControl)
             {
                 pv.RequestOwnership();
-                // Instead of using Main Camera, use a black object to appear before the game screen.
-                //MainCamera.enabled = false;
             }
             else if (whose == 1 && CanServerControl)
             {
-                // This is not yours (You are client) and you cannot control this.
-                //MainCamera.enabled = true;
                 return;
             }
             else if (whose == 2 && CanClientControl)
             {
-                // This is not yours ( You are Server ) and you cannot control this.
-                //MainCamera.enabled = true;
                 return;
             }
             else if (whose == 1 && CanClientControl)
             {
-                // This is not your ( You are the Client ). But you should be able to control. So Claim it
                 pv.RequestOwnership();
-                //MainCamera.enabled = false;
             }
             
         }
@@ -150,7 +182,6 @@ public class GameManager : PunBehaviour {
         {
             
         }
-        // If this is yours. Dont do anything. Wait for others to claim it? But this is a singleton script? Lets see if this actually works.
     }
 
     bool CheckIf2Players()
@@ -165,21 +196,9 @@ public class GameManager : PunBehaviour {
         }
     }
 
-    void updateBools()
-    {
-        if (pv.ownerId == 1)
-        {
-            CanServerControl = true;
-        }
-        else if (pv.ownerId == 2)
-        {
-            CanClientControl = true;
-        }
-    }
-
     public void LevelEnded(int _curLevel)
     {
-        if ( AmIServer)
+        if ( PhotonNetwork.isMasterClient)
         {
             // Server tries to get out.
             Debug.Log("You Won");
@@ -189,6 +208,34 @@ public class GameManager : PunBehaviour {
         }else
         {
             Debug.Log("WutFace");
+        }
+        //Debug.Log(_curLevel);
+        //Debug.Log(Puzzles);
+
+        if (PhotonNetwork.isMasterClient)
+        {
+            //if (!Puzzles[_curLevel - 1].GetComponent<PhotonView>().isMine)
+            //{
+            //    Puzzles[_curLevel - 1].GetComponent<PhotonView>().RequestOwnership();
+            //}
+            //Puzzles[_curLevel - 1].SetActive(false);
+            //if (_curLevel < Puzzles.Length)
+            //{
+            //    Puzzles[_curLevel].SetActive(true);
+            //    Player.GetComponent<Transform>().position = Puzzles[_curLevel].GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
+            //}
+            //Debug.Log(level);
+            //Destroy(level);
+            PhotonNetwork.Destroy(level);
+            curLevel += 1;
+            if ( curLevel > MaxLevels)
+            {
+                // Do something.
+            }
+            level = PhotonNetwork.Instantiate("Puzzle_" + curLevel.ToString(), new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0), 0);
+            
+            Player.GetComponent<Transform>().position = level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position;
+            //Debug.Log(level.GetComponent<Transform>().FindChild("PlayerSpawnPoint").GetComponent<Transform>().position);
         }
     }
 
@@ -205,6 +252,7 @@ public class GameManager : PunBehaviour {
         {
             Debug.Log("Jebaited");
         }
+        LevelEnded(currentLevel);
     }
 
     private void OnGUI()

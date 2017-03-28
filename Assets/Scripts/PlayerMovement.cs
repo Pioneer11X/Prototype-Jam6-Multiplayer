@@ -53,7 +53,9 @@ public class PlayerMovement : Photon.PunBehaviour {
 
         if ( !nextBlockIsWall && (PhotonNetwork.playerList.Length == 2))
         {
-            transform.position = new Vector3(CurPos.x + addTrans.x, CurPos.y + addTrans.y, 0);
+            //if ( (Gm.CanServerControl && PhotonNetwork.isMasterClient) || (Gm.CanClientControl && !PhotonNetwork.isMasterClient ))
+            if (!Gm.delayedControl)
+                transform.position = new Vector3(CurPos.x + addTrans.x, CurPos.y + addTrans.y, 0);
             
         }else if ( nextBlockIsWall)
         {
