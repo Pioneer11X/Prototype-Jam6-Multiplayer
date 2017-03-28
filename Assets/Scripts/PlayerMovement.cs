@@ -25,6 +25,17 @@ public class PlayerMovement : Photon.PunBehaviour {
         Gm = Scripts.GetComponent<GameManager>();
     }
 
+    void Start()
+    {
+        if ( PhotonNetwork.isMasterClient)
+        {
+            
+        }else
+        {
+            speed = speed * 0.75f;
+        }
+    }
+    
     // Update is called once per frame
     void Update () {
 
