@@ -34,4 +34,9 @@ public class LevelEnd : MonoBehaviour {
         }
     }
 
+    public int GetCurrentLevel()
+    {
+        return currentLevel;
+    }
+
 }

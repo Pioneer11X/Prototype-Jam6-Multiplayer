@@ -22,9 +22,16 @@ public class GameManager : PunBehaviour {
     public Transform BlackScreenInvisPos;
     public Transform BlackScreenVisPos;
 
+    public float RoundTime = 60.0f;
+
+    public string LevelObjTag;
+
     private PhotonView pv;
 
     private float timer = 0.0f;
+    private float completeTimer = 0.0f;
+
+    private GameObject curLevelObj;
 
     private void Awake()
     {
@@ -36,10 +43,20 @@ public class GameManager : PunBehaviour {
         {
             Destroy(gm);
         }
+
+        GameObject[] temp = GameObject.FindGameObjectsWithTag(LevelObjTag);
+        for ( int i = 0; i < temp.Length; i++)
+        {
+            if (temp[i].GetActive())
+            {
+                curLevelObj = temp[i];
+            }
+        }
     }
 
     private void Start()
     {
+        completeTimer = RoundTime;
         BlackScreen.GetComponent<Transform>().position = BlackScreenInvisPos.position;
         pv = Player.GetComponent<PhotonView>();
         CanServerControl = true;
@@ -50,7 +67,17 @@ public class GameManager : PunBehaviour {
     {
         if ( !CheckIf2Players())
         {
+            // If you are in the room without the other person then you are the server.
+            completeTimer = RoundTime;
             return;
+        }
+
+        completeTimer -= 0.0f;
+
+        if ( completeTimer <= 0.0f)
+        {
+            completeTimer = RoundTime;
+            LevelTimedOut();
         }
 
         // If we do have two players in.
@@ -63,26 +90,23 @@ public class GameManager : PunBehaviour {
             UpdateOwner();
         }
 
-        if ( pv.isMine)
+        int whose = pv.ownerId;
+
+        if ( ( pv.isMine && ( whose == 2) ) || (!pv.isMine && (whose == 1) ))
         {
-            BlackScreen.GetComponent<Transform>().position = BlackScreenVisPos.position;
-            int whose = pv.ownerId;
-            if (whose == 1)
-            {
-                // You are server.
-                AmIServer = true;
-            }
-            else if (whose == 2)
-            {
-                // You are the Client.
-                AmIClient = true;
-            }
-        }
-        else
+            AmIClient = true;
+            AmIServer = false;
+        }else
         {
-            BlackScreen.GetComponent<Transform>().position = BlackScreenInvisPos.position;
+            AmIServer = true;
+            AmIClient = false;
         }
 
+        if ( pv.isMine)
+        {
+            BlackScreen.GetComponent<Transform>().position = BlackScreenVisPos.position;  
+        }
+        
     }
 
     void UpdateOwner()
@@ -166,6 +190,26 @@ public class GameManager : PunBehaviour {
         {
             Debug.Log("WutFace");
         }
+    }
+
+    public void LevelTimedOut()
+    {
+        int currentLevel = curLevelObj.GetComponent<LevelEnd>().GetCurrentLevel();
+        if ( AmIClient)
+        {
+            Debug.Log("You wom");
+        }else if ( AmIServer)
+        {
+            Debug.Log("You Lost");
+        }else
+        {
+            Debug.Log("Jebaited");
+        }
+    }
+
+    private void OnGUI()
+    {
+        GUILayout.Label("Time Remaining: " + completeTimer.ToString());
     }
 
 }
